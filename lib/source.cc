@@ -14,7 +14,7 @@
 namespace gr::astra918 {
 namespace {
 using Clock = std::chrono::steady_clock;
-constexpr int64_t min_hz = 70000, max_hz = 170000000;
+constexpr int64_t min_hz = 70000, max_hz = 260000000;
 pmt::pmt_t key(const char* name) { return pmt::intern(name); }
 void add(pmt::pmt_t& d, const char* name, uint64_t value) {
     d = pmt::dict_add(d, key(name), pmt::from_uint64(value));

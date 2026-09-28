@@ -32,7 +32,7 @@ def main():
     widget.setWindowTitle("Astra918 spectrum")
     layout = Qt.QVBoxLayout(widget)
     tune = Qt.QDoubleSpinBox()
-    tune.setRange(0.07, 170.0)
+    tune.setRange(0.07, 260.0)
     tune.setDecimals(6)
     tune.setSuffix(" MHz")
     tune.setValue(14.2)

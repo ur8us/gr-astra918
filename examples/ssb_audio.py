@@ -13,8 +13,8 @@ def main():
     parser.add_argument("--channel-offset", type=int, default=1500)
     parser.add_argument("--sideband", choices=("USB", "LSB"), default="USB")
     args = parser.parse_args()
-    if not 70_000 <= args.center <= 170_000_000:
-        parser.error("center must be between 70 kHz and 170 MHz")
+    if not 70_000 <= args.center <= 260_000_000:
+        parser.error("center is outside the receiver tuning range")
     if not -50_000 <= args.channel_offset <= 50_000:
         parser.error("channel offset must fit inside the I/Q passband")
     tb = gr.top_block("Astra918 SSB audio")
