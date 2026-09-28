@@ -1,0 +1,25 @@
+id: astra918_control
+label: Astra918 Control
+category: '[Astra918]'
+flags: [python, cpp]
+parameters:
+- id: receiver
+  label: Astra918 source ID
+  dtype: name
+  default: astra918_source_0
+inputs:
+- domain: message
+  id: cmd
+  optional: true
+outputs:
+- domain: message
+  id: status
+  optional: true
+templates:
+  imports: from gnuradio import astra918
+  make: astra918.control.make(self.${receiver})
+cpp_templates:
+  includes: ['#include <gnuradio/astra918/control.h>']
+  declarations: 'gr::astra918::control::sptr ${id};'
+  make: 'this->${id} = gr::astra918::control::make(this->${receiver});'
+file_format: 1

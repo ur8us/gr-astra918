@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+find_dependency(Gnuradio 3.10)
+include("${CMAKE_CURRENT_LIST_DIR}/gnuradio-astra918Targets.cmake")
+check_required_components(gnuradio-astra918)

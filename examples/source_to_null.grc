@@ -1,0 +1,55 @@
+options:
+  parameters:
+    author: Astra918 contributors
+    catch_exceptions: 'True'
+    category: '[Astra918]'
+    description: Minimal receiver and control block flowgraph
+    generate_options: no_gui
+    id: astra918_source_to_null
+    output_language: python
+    run: 'False'
+    title: Astra918 source to null
+  states:
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+blocks:
+- name: astra918_source_0
+  id: astra918_source
+  parameters:
+    serial: '""'
+  states:
+    coordinate: [128, 96]
+    rotation: 0
+    state: enabled
+- name: astra918_control_0
+  id: astra918_control
+  parameters:
+    receiver: astra918_source_0
+  states:
+    coordinate: [128, 224]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    type: complex
+    vlen: '1'
+  states:
+    coordinate: [432, 96]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    en_uvec: 'False'
+    log_level: info
+  states:
+    coordinate: [432, 224]
+    rotation: 0
+    state: enabled
+connections:
+- [astra918_source_0, '0', blocks_null_sink_0, '0']
+- [astra918_control_0, status, blocks_message_debug_0, print]
+metadata:
+  file_format: 1

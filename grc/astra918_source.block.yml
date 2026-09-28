@@ -1,0 +1,23 @@
+id: astra918_source
+label: Astra918 Source
+category: '[Astra918]'
+flags: [python, cpp]
+parameters:
+- id: serial
+  label: USB serial (blank = only receiver)
+  dtype: string
+  default: '""'
+outputs:
+- domain: stream
+  dtype: complex
+- domain: message
+  id: status
+  optional: true
+templates:
+  imports: from gnuradio import astra918
+  make: astra918.source.make(${serial})
+cpp_templates:
+  includes: ['#include <gnuradio/astra918/source.h>']
+  declarations: 'gr::astra918::source::sptr ${id};'
+  make: 'this->${id} = gr::astra918::source::make(${serial});'
+file_format: 1
