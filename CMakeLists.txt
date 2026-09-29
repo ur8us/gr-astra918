@@ -40,7 +40,16 @@ target_link_libraries(astra918_python PRIVATE gnuradio-astra918)
 set_target_properties(astra918_python PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/gnuradio/astra918"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/gnuradio/astra918")
-file(COPY python/gnuradio/astra918/__init__.py DESTINATION "${CMAKE_BINARY_DIR}/python/gnuradio/astra918")
+set(ASTRA_PYTHON_FILES
+  python/gnuradio/astra918/__init__.py
+  python/gnuradio/astra918/audio_source.py
+  python/gnuradio/astra918/cat_serial.py
+  python/gnuradio/astra918/control_panel.py)
+foreach(ASTRA_PYTHON_FILE IN LISTS ASTRA_PYTHON_FILES)
+  get_filename_component(ASTRA_PYTHON_NAME "${ASTRA_PYTHON_FILE}" NAME)
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${ASTRA_PYTHON_FILE}"
+    "${CMAKE_BINARY_DIR}/python/gnuradio/astra918/${ASTRA_PYTHON_NAME}" COPYONLY)
+endforeach()
 set(ASTRA_PYTHON_DIR "${GR_PYTHON_DIR}/gnuradio/astra918")
 install(TARGETS gnuradio-astra918 EXPORT gnuradio-astra918-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -48,7 +57,7 @@ install(TARGETS gnuradio-astra918 EXPORT gnuradio-astra918-targets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(DIRECTORY include/gnuradio/astra918 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/gnuradio)
 install(TARGETS astra918_python LIBRARY DESTINATION ${ASTRA_PYTHON_DIR} RUNTIME DESTINATION ${ASTRA_PYTHON_DIR})
-install(FILES python/gnuradio/astra918/__init__.py DESTINATION ${ASTRA_PYTHON_DIR})
+install(FILES ${ASTRA_PYTHON_FILES} DESTINATION ${ASTRA_PYTHON_DIR})
 install(DIRECTORY grc/ DESTINATION ${CMAKE_INSTALL_DATADIR}/gnuradio/grc/blocks FILES_MATCHING PATTERN "*.block.yml")
 set(ASTRA_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/gnuradio-astra918")
 configure_package_config_file(cmake/gnuradio-astra918Config.cmake.in
@@ -66,4 +75,10 @@ if(BUILD_TESTING)
   target_include_directories(astra918_protocol_test PRIVATE lib/vendor)
   target_link_libraries(astra918_protocol_test PRIVATE gnuradio-astra918)
   add_test(NAME protocol COMMAND astra918_protocol_test)
+  if(UNIX AND NOT APPLE)
+    add_test(NAME python_offline COMMAND ${CMAKE_COMMAND} -E env
+      "PYTHONPATH=${CMAKE_BINARY_DIR}/python:$ENV{PYTHONPATH}"
+      "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{LD_LIBRARY_PATH}"
+      ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/python_offline.py)
+  endif()
 endif()

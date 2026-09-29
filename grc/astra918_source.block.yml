@@ -1,12 +1,16 @@
 id: astra918_source
-label: Astra918 Source
+label: Astra918 I/Q Source (120 ksps)
 category: '[Astra918]'
-flags: [python, cpp]
+flags: [python, cpp, throttle]
 parameters:
 - id: serial
   label: USB serial (blank = only receiver)
   dtype: string
   default: '""'
+inputs:
+- domain: message
+  id: cmd
+  optional: true
 outputs:
 - domain: stream
   dtype: complex
@@ -20,4 +24,12 @@ cpp_templates:
   includes: ['#include <gnuradio/astra918/source.h>']
   declarations: 'gr::astra918::source::sptr ${id};'
   make: 'this->${id} = gr::astra918::source::make(${serial});'
+documentation: |-
+  Live 120 ksample/s complex I/Q from the vendor USB interface. The status
+  message output reports the authoritative receiver state, including CAT
+  dial, RF center, audio offset, gains, input, revision and errors. It updates
+  when CAT or another controller changes settings. Send PMT command dictionaries
+  to cmd; Astra918 Receiver Controls provides an interactive Qt panel.
+  Firmware audio is a separate 12 kHz sound-card stream and CAT is a separate
+  CDC serial port. They remain available when this I/Q source is stopped.
 file_format: 1

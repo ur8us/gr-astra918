@@ -1,0 +1,22 @@
+id: astra918_audio_source
+label: Astra918 Firmware Audio
+category: '[Astra918]'
+flags: [python, throttle]
+parameters:
+- id: device_name
+  label: OS recording device (Astra918)
+  dtype: string
+  default: '""'
+outputs:
+- domain: stream
+  dtype: float
+templates:
+  imports: from gnuradio import astra918
+  make: astra918.AudioSource(${device_name})
+documentation: |-
+  Mono 12 ksample/s audio from the receiver's firmware USB sound card.
+  Choose the Astra918 recording device in your operating system or enter its
+  GNU Radio Audio Source device name here. Blank uses the OS default input,
+  which might be a different microphone. I/Q remains an independent 120 ksps
+  stream and the audio block never claims the vendor USB interface.
+file_format: 1

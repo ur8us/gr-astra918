@@ -1,0 +1,42 @@
+id: astra918_cat_serial
+label: Astra918 CAT Serial
+category: '[Astra918]'
+flags: [python]
+parameters:
+- id: port
+  label: CDC serial port (blank = off)
+  dtype: string
+  default: '""'
+- id: baud
+  label: Baud (CDC ignores line rate)
+  dtype: int
+  default: '115200'
+- id: poll_interval
+  label: FA poll interval (s, 0 = off)
+  dtype: real
+  default: '1.0'
+inputs:
+- domain: message
+  id: cmd
+  optional: true
+outputs:
+- domain: message
+  id: text
+  optional: true
+- domain: message
+  id: bytes
+  optional: true
+- domain: message
+  id: status
+  optional: true
+templates:
+  imports: from gnuradio import astra918
+  make: astra918.CatSerial(${port}, ${baud}, ${poll_interval})
+documentation: |-
+  CAT responses arrive as text symbols and raw byte PDUs. Send one printable
+  ASCII command (for example FA;) as a symbol or byte-vector PDU to cmd.
+  With a nonempty port this block opens USB CDC and polls FA periodically.
+  Leave the port blank when WSJT-X owns CAT. The Astra918 I/Q Source status
+  message still reports tuning and receiver state without opening CDC.
+  A physical serial port cannot normally be shared between applications.
+file_format: 1

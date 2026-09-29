@@ -1,42 +1,86 @@
 options:
   parameters:
     author: Astra918 contributors
-    catch_exceptions: 'True'
-    category: '[Astra918]'
-    description: Minimal receiver and control block flowgraph
-    generate_options: no_gui
-    id: astra918_source_to_null
+    description: Live 120 ksps I/Q, firmware audio, optional CAT serial and receiver controls
+    generate_options: qt_gui
+    id: astra918_receiver_workbench
     output_language: python
-    run: 'False'
-    title: Astra918 source to null
+    title: Astra918 receiver workbench
   states:
-    coordinate: [8, 8]
+    coordinate: [24, 24]
     rotation: 0
     state: enabled
+
 blocks:
 - name: astra918_source_0
   id: astra918_source
   parameters:
     serial: '""'
   states:
-    coordinate: [128, 96]
+    coordinate: [160, 120]
     rotation: 0
     state: enabled
-- name: astra918_control_0
-  id: astra918_control
-  parameters:
-    receiver: astra918_source_0
-  states:
-    coordinate: [128, 224]
-    rotation: 0
-    state: enabled
-- name: blocks_null_sink_0
-  id: blocks_null_sink
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
   parameters:
     type: complex
-    vlen: '1'
+    name: '"120 kHz I/Q spectrum"'
+    fftsize: '2048'
+    fc: '14200000'
+    bw: '120000'
   states:
-    coordinate: [432, 96]
+    coordinate: [520, 90]
+    rotation: 0
+    state: enabled
+- name: qtgui_waterfall_sink_x_0
+  id: qtgui_waterfall_sink_x
+  parameters:
+    type: complex
+    name: '"120 kHz I/Q waterfall"'
+    fftsize: '1024'
+    fc: '14200000'
+    bw: '120000'
+  states:
+    coordinate: [520, 220]
+    rotation: 0
+    state: enabled
+- name: astra918_control_panel_0
+  id: astra918_control_panel
+  parameters:
+    receiver: astra918_source_0
+    spectrum_sink: '"qtgui_freq_sink_x_0"'
+    waterfall_sink: '"qtgui_waterfall_sink_x_0"'
+  states:
+    coordinate: [160, 300]
+    rotation: 0
+    state: enabled
+- name: astra918_audio_source_0
+  id: astra918_audio_source
+  parameters:
+    device_name: '""'
+  states:
+    coordinate: [160, 440]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    type: float
+    name: '"Firmware USB audio (12 kHz)"'
+    size: '2048'
+    srate: '12000'
+  states:
+    coordinate: [520, 420]
+    rotation: 0
+    state: enabled
+- name: astra918_cat_serial_0
+  id: astra918_cat_serial
+  parameters:
+    port: '""'
+    baud: '115200'
+    poll_interval: '1.0'
+  states:
+    coordinate: [160, 580]
     rotation: 0
     state: enabled
 - name: blocks_message_debug_0
@@ -45,11 +89,19 @@ blocks:
     en_uvec: 'False'
     log_level: info
   states:
-    coordinate: [432, 224]
+    coordinate: [520, 590]
     rotation: 0
     state: enabled
+
 connections:
-- [astra918_source_0, '0', blocks_null_sink_0, '0']
-- [astra918_control_0, status, blocks_message_debug_0, print]
+- [astra918_source_0, '0', qtgui_freq_sink_x_0, '0']
+- [astra918_source_0, '0', qtgui_waterfall_sink_x_0, '0']
+- [astra918_source_0, status, blocks_message_debug_0, print]
+- [astra918_audio_source_0, '0', qtgui_time_sink_x_0, '0']
+- [astra918_cat_serial_0, text, blocks_message_debug_0, print]
+- [astra918_cat_serial_0, bytes, blocks_message_debug_0, print_pdu]
+- [astra918_cat_serial_0, status, blocks_message_debug_0, print]
+
 metadata:
   file_format: 1
+  grc_version: 3.10.9.2

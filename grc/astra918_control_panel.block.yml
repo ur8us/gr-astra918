@@ -1,0 +1,28 @@
+id: astra918_control_panel
+label: Astra918 Receiver Controls
+category: '[Astra918]'
+flags: [python]
+parameters:
+- id: receiver
+  label: Astra918 source ID
+  dtype: name
+  default: astra918_source_0
+- id: spectrum_sink
+  label: Frequency sink ID (optional)
+  dtype: string
+  default: '""'
+- id: waterfall_sink
+  label: Waterfall sink ID (optional)
+  dtype: string
+  default: '""'
+templates:
+  imports: from gnuradio import astra918
+  make: astra918.ControlPanel(self.${receiver}, self, ${spectrum_sink}, ${waterfall_sink})
+documentation: |-
+  Qt controls for spectrum center, firmware audio offset and mode/passband,
+  antenna input, RF/IF/LF gain, attenuation, capacitor, reference oscillator
+  and eight logical GPIO values. The panel polls firmware-owned state and
+  adopts external CAT changes. Set the optional QT frequency/waterfall sink
+  IDs to keep their axes centered after external tuning. Save is explicit.
+  This panel uses Astra918 Source's vendor connection; it does not open CAT.
+file_format: 1
