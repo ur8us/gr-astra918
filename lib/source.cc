@@ -63,7 +63,9 @@ class source_impl final : public source {
     const std::string serial_;
     mutable std::mutex mutex_;
     std::unique_ptr<cmx::Device> device_;
+    bool running_ = false;
     cmx::State current_;
+    std::string transport_error_;
     cmx::AstraDecoder decoder_;
     std::deque<cmx::IqBlock> pending_;
     size_t sample_ = 0;
@@ -71,7 +73,34 @@ class source_impl final : public source {
     pmt::pmt_t status_port_ = key("status");
     pmt::pmt_t cmd_port_ = key("cmd");
 
-    void publish() { message_port_pub(status_port_, encode(current_)); }
+    pmt::pmt_t snapshot() const {
+        auto d = encode(current_);
+        if (!transport_error_.empty())
+            d = pmt::dict_add(d, key("transport_error"), pmt::intern(transport_error_));
+        return d;
+    }
+    void publish() { message_port_pub(status_port_, snapshot()); }
+    bool connect_device() {
+        try {
+            auto candidate = std::make_unique<cmx::Device>(cmx::open_usb(serial_));
+            if (candidate->state.configured) candidate->start();
+            device_ = std::move(candidate);
+            current_ = device_->state;
+            transport_error_.clear();
+            decoder_ = cmx::AstraDecoder();
+            pending_.clear(); sample_ = 0;
+            poll_ = Clock::now();
+            publish();
+            return true;
+        } catch (const std::exception& e) {
+            device_.reset();
+            current_ = cmx::State{};
+            transport_error_ = e.what();
+            pending_.clear(); sample_ = 0;
+            publish();
+            return false;
+        }
+    }
     void refresh() {
         auto before = current_;
         current_ = device_->refresh();
@@ -159,17 +188,13 @@ public:
     }
     bool start() override {
         std::lock_guard<std::mutex> lock(mutex_);
-        device_ = std::make_unique<cmx::Device>(cmx::open_usb(serial_));
-        if (device_->state.configured) device_->start();
-        current_ = device_->state;
-        decoder_ = cmx::AstraDecoder();
-        pending_.clear(); sample_ = 0;
-        poll_ = Clock::now();
-        publish();
+        running_ = true;
+        connect_device();
         return true;
     }
     bool stop() override {
         std::lock_guard<std::mutex> lock(mutex_);
+        running_ = false;
         if (device_) { device_->stop(); device_.reset(); }
         pending_.clear(); sample_ = 0;
         return true;
@@ -180,17 +205,29 @@ public:
     }
     pmt::pmt_t state() const override {
         std::lock_guard<std::mutex> lock(mutex_);
-        return encode(current_);
+        return snapshot();
     }
     void command(pmt::pmt_t d) override {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (!device_) throw std::runtime_error("Astra918 source is stopped");
+        if (!running_) throw std::runtime_error("Astra918 source is stopped");
+        if (!device_) {
+            auto name = pmt::is_dict(d) ? pmt::dict_ref(d, key("name"), pmt::PMT_NIL) : pmt::PMT_NIL;
+            if (pmt::is_symbol(name) && pmt::symbol_to_string(name) == "retry") {
+                if (!connect_device()) throw std::runtime_error(transport_error_);
+                return;
+            }
+            throw std::runtime_error("Astra918 receiver unavailable; use Retry receiver");
+        }
         try { apply(d); }
         catch (...) { refresh(); throw; }
     }
     int work(int noutput_items, gr_vector_const_void_star&, gr_vector_void_star& output_items) override {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (!device_) return -1;
+        if (!running_) return -1;
+        if (!device_) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            return 0;
+        }
         if (Clock::now() - poll_ >= std::chrono::milliseconds(200)) {
             refresh(); poll_ = Clock::now();
         }

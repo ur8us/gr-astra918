@@ -106,8 +106,17 @@ class ControlPanel(QtWidgets.QWidget):
         self.status = QtWidgets.QLabel("Waiting for receiver state")
         self.status.setWordWrap(True)
         layout.addWidget(self.status, row, 0, 1, 4)
+        self._banner = None
         if top_block is not None:
-            top_block.top_layout.insertWidget(0, self)
+            top_block.top_layout.addWidget(self)
+            self._banner = QtWidgets.QLabel()
+            self._banner.setWordWrap(True)
+            self._banner.setStyleSheet("background: #ffe3df; color: #641b12; padding: 8px;")
+            top_block.top_layout.insertWidget(0, self._banner)
+            self._banner.hide()
+            if top_block.width() < 1100 or top_block.height() < 750:
+                top_block.resize(max(top_block.width(), 1180),
+                                 max(top_block.height(), 850))
 
         self._timer = QtCore.QTimer(self)
         self._timer.timeout.connect(self._refresh)
@@ -252,12 +261,18 @@ class ControlPanel(QtWidgets.QWidget):
             self._updating = False
         with self._lock:
             error = self._error
+        transport_error = state.get("transport_error", "")
+        if self._banner is not None:
+            self._banner.setText(f"Astra918 I/Q unavailable: {transport_error}")
+            self._banner.setVisible(bool(transport_error))
         self.status.setText(
             f"Dial {state['dial_hz']} Hz · center {state['center_hz']} Hz · "
             f"revision {state['revision']} · "
             f"configured {'yes' if state['configured'] else 'no'} · "
             f"I/Q {'on' if state['streaming'] else 'off'} · "
-            f"error {state['error']}" + (f" · command: {error}" if error else "")
+            f"error {state['error']}"
+            + (f" · USB: {transport_error}" if transport_error else "")
+            + (f" · command: {error}" if error else "")
         )
 
     def closeEvent(self, event):

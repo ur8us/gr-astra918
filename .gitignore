@@ -1,3 +1,4 @@
 build/
 __pycache__/
 *.pyc
+examples/astra918_receiver_workbench.py

@@ -5,6 +5,13 @@ delivers 120 ksps complex I/Q over vendor USB interface 4. Firmware USB audio
 and CAT remain available to WSJT-X while GNU Radio runs. One program at a time
 may own the vendor I/Q interface.
 
+The SDR Console Linux bridge service also claims that interface, even when
+SDR Console's window is closed. Before starting the GNU Radio workbench, stop
+the idle bridge with `systemctl --user stop sdr-console-astra918-linux.service`.
+Use `systemctl --user start sdr-console-astra918-linux.service` when returning
+to SDR Console. The workbench shows a USB error banner if the interface is
+already owned. Firmware USB audio and CAT remain separate interfaces.
+
 Build with a C++17 compiler, GNU Radio 3.10, pybind11, Python development
 headers, and libusb 1.0. On Linux:
 
