@@ -72,6 +72,8 @@ class source_impl final : public source {
     Clock::time_point poll_{};
     pmt::pmt_t status_port_ = key("status");
     pmt::pmt_t cmd_port_ = key("cmd");
+    mutable std::mutex status_mutex_;
+    pmt::pmt_t cached_state_ = pmt::make_dict();
 
     pmt::pmt_t snapshot() const {
         auto d = encode(current_);
@@ -79,7 +81,13 @@ class source_impl final : public source {
             d = pmt::dict_add(d, key("transport_error"), pmt::intern(transport_error_));
         return d;
     }
-    void publish() { message_port_pub(status_port_, snapshot()); }
+    pmt::pmt_t cache_state() {
+        auto d = snapshot();
+        std::lock_guard<std::mutex> lock(status_mutex_);
+        cached_state_ = d;
+        return d;
+    }
+    void publish() { message_port_pub(status_port_, cache_state()); }
     bool connect_device() {
         try {
             auto candidate = std::make_unique<cmx::Device>(cmx::open_usb(serial_));
@@ -108,9 +116,11 @@ class source_impl final : public source {
             pending_.clear(); sample_ = 0;
             decoder_ = cmx::AstraDecoder();
         }
-        if (current_.revision != before.revision || current_.generation != before.generation ||
-            current_.configured != before.configured || current_.error != before.error)
-            publish();
+        const bool changed = current_.revision != before.revision ||
+            current_.generation != before.generation ||
+            current_.configured != before.configured || current_.error != before.error;
+        auto d = cache_state();
+        if (changed) message_port_pub(status_port_, d);
     }
     void apply(pmt::pmt_t d) {
         if (!pmt::is_dict(d)) throw std::invalid_argument("Astra918 command must be a PMT dict");
@@ -176,6 +186,7 @@ public:
         : gr::sync_block("astra918_source", gr::io_signature::make(0, 0, 0),
                          gr::io_signature::make(1, 1, sizeof(gr_complex))),
           serial_(std::move(serial)) {
+        cache_state();
         message_port_register_out(status_port_);
         message_port_register_in(cmd_port_);
         set_msg_handler(cmd_port_, [this](pmt::pmt_t msg) {
@@ -195,8 +206,13 @@ public:
     bool stop() override {
         std::lock_guard<std::mutex> lock(mutex_);
         running_ = false;
-        if (device_) { device_->stop(); device_.reset(); }
+        if (device_) {
+            device_->stop();
+            current_ = device_->state;
+            device_.reset();
+        }
         pending_.clear(); sample_ = 0;
+        cache_state();
         return true;
     }
     double center_freq() const override {
@@ -204,8 +220,8 @@ public:
         return double(current_.center);
     }
     pmt::pmt_t state() const override {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return snapshot();
+        std::lock_guard<std::mutex> lock(status_mutex_);
+        return cached_state_;
     }
     void command(pmt::pmt_t d) override {
         std::lock_guard<std::mutex> lock(mutex_);
