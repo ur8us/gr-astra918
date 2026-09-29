@@ -5,6 +5,9 @@ delivers 120 ksps complex I/Q over vendor USB interface 4. Firmware USB audio
 and CAT remain available to WSJT-X while GNU Radio runs. One program at a time
 may own the vendor I/Q interface.
 
+Project links: [Astra918 main repository](https://github.com/ur8us/astra918sdr) ·
+[EEVblog discussion](https://www.eevblog.com/forum/rf-microwave/astra918-cmx918rp2350-based-receiver-0-07-to-130-mhz/).
+
 The SDR Console Linux bridge service also claims that interface, even when
 SDR Console's window is closed. Before starting the GNU Radio workbench, stop
 the idle bridge with `systemctl --user stop sdr-console-astra918-linux.service`.
