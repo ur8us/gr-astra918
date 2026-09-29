@@ -42,6 +42,16 @@ field uses the system's default input, which may be a different microphone.
 The receiver's firmware audio is mono at 12 ksample/s; some audio backends may
 resample to this rate or require an explicit device configuration.
 
+The running workbench shows the I/Q spectrum and waterfall above the firmware
+audio waveform and receiver controls:
+
+![Astra918 receiver workbench with spectrum, waterfall, audio waveform, and controls](images/Screenshot%20from%202026-09-29%2010-44-19.png)
+
+The example flowgraph in GNU Radio Companion connects the I/Q and audio streams
+to Qt displays and routes receiver and optional CAT messages to Message Debug:
+
+![Astra918 GNU Radio Companion flowgraph](images/Screenshot%20from%202026-09-29%2010-44-38.png)
+
 The blocks serve distinct interfaces:
 
 - **Astra918 I/Q Source** outputs complex 120 ksps samples over USB vendor
