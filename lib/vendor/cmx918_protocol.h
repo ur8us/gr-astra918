@@ -43,7 +43,9 @@ enum Command : uint8_t {
   TuneChannel = 0x38,
   TuneCenter = 0x39,
   SetReference = 0x3a,
-  UpdateGpio = 0x3b
+  UpdateGpio = 0x3b,
+  SetVfoSign = 0x3c,
+  SetIfFrequency = 0x3d
 };
 enum class ErrorCode : uint8_t {
   Ok,
@@ -76,7 +78,8 @@ struct Capabilities {
   uint8_t inputs = 0, filter_mode = 0, manual_rf_inputs = 0;
   bool usb_decimated_120 = false, wide_fir = false, lf_mf_capacitor = false;
   bool manual_lf_rf = false;
-  bool register_access = false, reference_clock = false, logical_gpio = false;
+  bool register_access = false, reference_clock = false, logical_gpio = false,
+       vfo_if_selection = false;
   std::vector<uint32_t> rates;
   std::vector<int16_t> rf_gains, if_gains;
   static Capabilities decode(const Bytes &);
@@ -103,6 +106,7 @@ struct State {
   uint32_t sequence = 0;
   uint16_t lf_mf_capacitor = 0;
   uint8_t reference_clock = 0, gpio = 0, features = 0;
+  uint8_t vfo_sign = 0, if_frequency = 0;
   static State decode(const Bytes &);
   Bytes encode() const;
 };

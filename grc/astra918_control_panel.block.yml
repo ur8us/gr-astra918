@@ -20,7 +20,7 @@ templates:
   make: astra918.ControlPanel(self.${receiver}, self, ${spectrum_sink}, ${waterfall_sink})
 documentation: |-
   Qt controls for spectrum center, firmware audio offset and mode/passband,
-  antenna input, RF/IF/LF gain, attenuation, capacitor, reference oscillator
+  antenna input, RF/IF/LF gain, attenuation, capacitor, VFO sign, IF frequency, reference oscillator
   and eight logical GPIO values. The panel polls firmware-owned state and
   adopts external CAT changes. Set the optional QT frequency/waterfall sink
   IDs to keep their axes centered after external tuning. Save is explicit.

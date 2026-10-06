@@ -36,6 +36,7 @@ State Device::refresh() {
   state = State::decode(command(Status));
   capabilities.reference_clock = state.features & 64;
   capabilities.logical_gpio = state.features & 128;
+  capabilities.vfo_if_selection = state.features & 32;
   return state;
 }
 void Device::frequency(uint64_t v) {

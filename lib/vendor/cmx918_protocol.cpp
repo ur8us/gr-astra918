@@ -133,12 +133,17 @@ State State::decode(const Bytes &b) {
   s.reference_clock = b[118];
   s.gpio = b[119];
   s.features = b[120];
+  if (s.features & 0x20) {
+    s.vfo_sign = b[121];
+    s.if_frequency = b[122];
+  }
   s.revision = u32(b, 96);
   s.audio_under = u32(b, 100);
   s.audio_over = u32(b, 104);
   s.audio_stalls = u32(b, 108);
   s.saved_revision = u32(b, 112);
-  if (s.reference_clock > 1 || (s.audio_mode != 1 && s.audio_mode != 2) || s.audio_low >= s.audio_high ||
+  if (s.reference_clock > 1 || s.vfo_sign > 2 || s.if_frequency > 2 ||
+      (s.audio_mode != 1 && s.audio_mode != 2) || s.audio_low >= s.audio_high ||
       s.audio_high > 5000)
     throw std::runtime_error("Invalid audio state");
   s.requested = u64(b, 0);
@@ -187,6 +192,8 @@ Bytes State::encode() const {
   put(b, 116, audio_high, 2);
   b[118] = reference_clock;
   b[119] = gpio;
+  b[121] = vfo_sign;
+  b[122] = if_frequency;
   b[120] = features;
   put(b, 0, requested, 8);
   put(b, 8, actual, 8);

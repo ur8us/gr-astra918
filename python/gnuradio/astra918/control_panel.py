@@ -79,6 +79,14 @@ class ControlPanel(QtWidgets.QWidget):
                                       lambda index: self._send("reference", index))
         row += 1
 
+        self.vfo_sign = self._choice(layout, row, 0, "VFO sign",
+                                     ["Auto", "LO above the signal", "LO below the signal"],
+                                     lambda index: self._send("vfo_sign", index))
+        self.if_frequency = self._choice(layout, row, 2, "IF frequency",
+                                         ["Auto (96 kHz)", "96 kHz", "120 kHz"],
+                                         lambda index: self._send("if_frequency", index))
+        row += 1
+
         gpio_box = QtWidgets.QHBoxLayout()
         gpio_box.addWidget(QtWidgets.QLabel("Logical GPIO"))
         self.gpio = []
@@ -242,6 +250,10 @@ class ControlPanel(QtWidgets.QWidget):
             for name in ("rf_gain", "if_gain", "lf_gain", "attenuator", "capacitor"):
                 self._adopt(getattr(self, name), int(state[name]), name)
             self._adopt(self.reference, int(state["reference"]), "reference")
+            self._adopt(self.vfo_sign, int(state["vfo_sign"]), "vfo_sign")
+            self._adopt(self.if_frequency, int(state["if_frequency"]), "if_frequency")
+            self.vfo_sign.setEnabled(bool(state.get("vfo_if_selection", False)))
+            self.if_frequency.setEnabled(bool(state.get("vfo_if_selection", False)))
             mask = int(state["gpio"])
             for bit, checkbox in enumerate(self.gpio):
                 self._adopt(checkbox, bool(mask & (1 << bit)), f"gpio{bit}")

@@ -83,13 +83,17 @@ The blocks serve distinct interfaces:
 
 Commands are PMT dictionaries with a symbol `name` and integer `value`. Names
 are `center_hz`, `audio_offset`, `mode` (1 LSB, 2 USB), `reference` (0 Internal,
-1 External), `gpio0` through `gpio7`, `input` (0 Auto, 1 LF, 2 HF, 3 VHF),
+1 External), `vfo_sign` (0 Auto, 1 LO above, 2 LO below), `if_frequency`
+(0 Auto/96 kHz, 1 96 kHz, 2 120 kHz), `gpio0` through `gpio7`,
+`input` (0 Auto, 1 LF, 2 HF, 3 VHF),
 `rf_auto`, `if_auto`, `rf_gain` (0–38), `if_gain` (0–31), `lf_gain` (0–15),
 `attenuator` (0–15), and `capacitor` (0–4095). `audio_filter` takes low as
 `value` and an additional integer `high`. `retry` and `save` take only `name`.
 Changes apply immediately; only `save` writes receiver flash. `center_hz`
 preserves the firmware audio offset, while `audio_offset` preserves the RF
-center. Check the returned status for PLL/configuration faults.
+center. The Qt panel reads both new settings from firmware and disables them
+when the receiver does not advertise support. Check the returned status for
+PLL/configuration faults.
 
 The Qt workbench requires GNU Radio Qt GUI and PyQt5. The other examples show
 a live spectrum and USB/LSB demodulation from I/Q. The latter requires an audio

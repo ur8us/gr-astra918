@@ -31,6 +31,9 @@ pmt::pmt_t encode(const cmx::State& s) {
     add(d, "audio_low", s.audio_low);
     add(d, "audio_high", s.audio_high);
     add(d, "reference", s.reference_clock);
+    add(d, "vfo_sign", s.vfo_sign);
+    add(d, "if_frequency", s.if_frequency);
+    add(d, "vfo_if_selection", (s.features & 0x20) != 0);
     add(d, "gpio", s.gpio);
     add(d, "input", s.input);
     add(d, "rf_auto", s.rf_mode == 0);
@@ -154,6 +157,10 @@ class source_impl final : public source {
                 if (!device_->capabilities.reference_clock) throw std::runtime_error("Reference selection unsupported");
                 range(value, 0, 1);
                 device_->command(cmx::SetReference, {uint8_t(value)});
+            } else if (n == "vfo_sign" || n == "if_frequency") {
+                if (!device_->capabilities.vfo_if_selection) throw std::runtime_error("VFO sign/IF selection unsupported");
+                range(value, 0, 2);
+                device_->command(n == "vfo_sign" ? cmx::SetVfoSign : cmx::SetIfFrequency, {uint8_t(value)});
             } else if (n.size() == 5 && n.substr(0, 4) == "gpio" && n[4] >= '0' && n[4] <= '7') {
                 if (!device_->capabilities.logical_gpio) throw std::runtime_error("Logical GPIO unsupported");
                 range(value, 0, 1);
